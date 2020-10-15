@@ -24,7 +24,7 @@ test('builds a fastify plugin', (t) => {
 
   const opts = fp.firstCall.args[1]
 
-  t.equal(opts.fastify, '>= 2.x', 'adds option for fastify support')
+  t.equal(opts.fastify, '3.x', 'adds option for fastify support')
   t.equal(opts.option, 'option1', 'forward provided options')
 
   t.end()
