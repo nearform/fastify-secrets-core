@@ -1,3 +1,5 @@
+'use strict'
+
 const { test, beforeEach } = require('tap')
 const sinon = require('sinon')
 const proxyquire = require('proxyquire')
