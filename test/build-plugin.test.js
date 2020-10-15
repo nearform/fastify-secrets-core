@@ -8,12 +8,20 @@ const buildPlugin = proxyquire('../lib/build-plugin', {
 })
 
 class Client {
-  get(key) {
+  async get(key) {
     return `content for ${key}`
   }
+
+  async close() {}
 }
 
-beforeEach(async () => sinon.restore())
+beforeEach(async () => {
+  fp.resetHistory()
+  sinon.resetBehavior()
+  sinon.resetHistory()
+  sinon.reset()
+  sinon.restore()
+})
 
 test('builds a fastify plugin', (t) => {
   buildPlugin(Client, {
@@ -199,5 +207,68 @@ test('plugin', (t) => {
 
     await t.rejects(promise, new Error(`fastify-secrets: no secrets requested`), 'registration fails')
     t.notOk(decorate.called, 'does not decorate fastify')
+  })
+})
+
+test('client integration', (t) => {
+  t.plan(2)
+
+  t.test('client with close method', async (t) => {
+    t.plan(1)
+
+    let closeCalled = false
+
+    class Client {
+      async get(key) {
+        return key
+      }
+
+      async close() {
+        closeCalled = true
+      }
+    }
+
+    buildPlugin(Client)
+    const plugin = fp.firstCall.args[0]
+
+    const decorate = sinon.spy()
+
+    await plugin(
+      { decorate },
+      {
+        secrets: {
+          secret1: 'secret1-name',
+          secret2: 'secret2-name'
+        }
+      }
+    )
+
+    t.ok(closeCalled, 'calls client.close if present')
+  })
+
+  t.test('client without close method', async (t) => {
+    t.plan(1)
+
+    class Client {
+      async get(key) {
+        return key
+      }
+    }
+
+    buildPlugin(Client)
+    const plugin = fp.firstCall.args[0]
+    const decorate = sinon.spy()
+
+    const promise = plugin(
+      { decorate },
+      {
+        secrets: {
+          secret1: 'secret1-name',
+          secret2: 'secret2-name'
+        }
+      }
+    )
+
+    await t.resolves(promise, 'does not fail')
   })
 })
