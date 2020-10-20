@@ -71,6 +71,8 @@ These are the available options:
 - `namespace` (optional). If present, the plugin will add the secret values to `fastify.secrets.namespace` instead of `fastify.secrets`.
 - `concurrency` (optional, defaults to 5). How  many concurrent call will be made to `client.get`. This is handled by `fastify-secrets-core` and it's transparent to the implementation.
 
+The plugin will also expose the original Client for uses outside of fastify (i.e. db migrations and scripts)
+
 #### Example
 
 Assuming a plugin is built as per the previous examples, it can be used as

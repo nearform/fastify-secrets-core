@@ -4,7 +4,7 @@ const { test, beforeEach } = require('tap')
 const sinon = require('sinon')
 const proxyquire = require('proxyquire')
 
-const fp = sinon.spy()
+const fp = sinon.stub()
 const buildPlugin = proxyquire('../lib/build-plugin', {
   'fastify-plugin': fp
 })
@@ -23,10 +23,12 @@ beforeEach(async () => {
   sinon.resetHistory()
   sinon.reset()
   sinon.restore()
+
+  fp.returns({})
 })
 
 test('builds a fastify plugin', (t) => {
-  buildPlugin(Client, {
+  const plugin = buildPlugin(Client, {
     option: 'option1'
   })
 
@@ -36,6 +38,8 @@ test('builds a fastify plugin', (t) => {
 
   t.equal(opts.fastify, '3.x', 'adds option for fastify support')
   t.equal(opts.option, 'option1', 'forward provided options')
+
+  t.equal(plugin.Client, Client, 'also exports client')
 
   t.end()
 })
