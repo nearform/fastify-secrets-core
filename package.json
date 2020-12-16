@@ -7,14 +7,17 @@
     "lint": "eslint lib/**/*.js test/**/*.js",
     "lint:fix": "npm run lint -- --fix",
     "lint:staged": "lint-staged",
-    "test": "tap --reporter=spec --coverage-report=html --coverage-report=text --100 --no-browser test/*.test.js test/**/*.test.js",
-    "test:ci": "tap --no-color --reporter=spec --coverage-report=json --coverage-report=text --100 test/*.test.js test/**/*.test.js"
+    "test": "tap --no-browser --coverage-report=html --coverage-report=text  test",
+    "test:ci": "tap --no-color --coverage-report=json --coverage-report=text test"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nearform/fastify-secrets-core.git"
   },
   "author": "NearForm Ltd",
+  "contributors": [
+    "Simone Busoli <simone.busoli@nearform.com>"
+  ],
   "license": "Apache-2.0",
   "keywords": [
     "fastify",
