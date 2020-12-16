@@ -72,6 +72,7 @@ These are the available options:
 - `secrets` (required). A non-empty object representing a map of secret keys and references. The plugin will decorate fastify with a `secrets` object with the same keys as this option but will replace the references with the actual values for the secret as fetched with `client.get(reference)`
 - `namespace` (optional). If present, the plugin will add the secret values to `fastify.secrets.namespace` instead of `fastify.secrets`.
 - `concurrency` (optional, defaults to 5). How  many concurrent call will be made to `client.get`. This is handled by `fastify-secrets-core` and it's transparent to the implementation.
+- `clientOptions` (optional). A value that will be provided to the constructor of the `Client`. Useful to allow plugin users to customize the plugin.
 
 The plugin will also expose the original Client for uses outside of fastify (i.e. db migrations and scripts)
 
@@ -86,6 +87,9 @@ fastify.register(plugin, {
   secrets: {
     user: 'PG_USER',
     pass: 'PG_PASS'
+  },
+  clientOptions: {
+    optional: 'value'
   }
 })
 

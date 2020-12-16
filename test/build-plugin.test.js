@@ -19,11 +19,7 @@ class Client {
 
 beforeEach(async () => {
   fp.resetHistory()
-  sinon.resetBehavior()
-  sinon.resetHistory()
   sinon.reset()
-  sinon.restore()
-
   fp.returns({})
 })
 
@@ -217,7 +213,37 @@ test('plugin', (t) => {
 })
 
 test('client integration', (t) => {
-  t.plan(2)
+  t.plan(3)
+
+  t.test('clientOptions are provided to client when instantiated', async (t) => {
+    const constructorStub = sinon.stub()
+
+    class Client {
+      constructor(options) {
+        return constructorStub(options)
+      }
+
+      async get() {}
+    }
+
+    buildPlugin(Client)
+
+    const plugin = fp.firstCall.args[0]
+    const decorate = sinon.spy()
+    const clientOptions = { client: 'options' }
+
+    await plugin(
+      { decorate },
+      {
+        secrets: {
+          secret1: 'secret1-name'
+        },
+        clientOptions
+      }
+    )
+
+    sinon.assert.calledOnceWithExactly(constructorStub, clientOptions)
+  })
 
   t.test('client with close method', async (t) => {
     t.plan(1)
