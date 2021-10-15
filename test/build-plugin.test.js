@@ -73,6 +73,30 @@ test('plugin', (t) => {
     )
   })
 
+  t.test('no namespace - secrets array', async (t) => {
+    t.plan(2)
+
+    const decorate = sinon.spy()
+
+    await plugin(
+      { decorate },
+      {
+        secrets: ['secret1-name', 'secret2-name']
+      }
+    )
+
+    t.ok(decorate.called, 'decorates fastify')
+    t.ok(
+      decorate.calledWith('secrets', {
+        '0': 'content for secret1-name',
+        '1': 'content for secret2-name',
+        'secret1-name': 'content for secret1-name',
+        'secret2-name': 'content for secret2-name'
+      }),
+      'decorates with secrets content'
+    )
+  })
+
   t.test('no namespace - secrets exists', async (t) => {
     t.plan(2)
 
