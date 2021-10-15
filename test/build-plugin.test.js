@@ -40,9 +40,7 @@ test('builds a fastify plugin', (t) => {
   t.end()
 })
 
-test('plugin', (t) => {
-  t.plan(7)
-
+test('plugin', async (t) => {
   buildPlugin(Client, {
     option: 'option1'
   })
