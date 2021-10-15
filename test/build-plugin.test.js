@@ -88,8 +88,8 @@ test('plugin', (t) => {
     t.ok(decorate.called, 'decorates fastify')
     t.ok(
       decorate.calledWith('secrets', {
-        '0': 'content for secret1-name',
-        '1': 'content for secret2-name',
+        0: 'content for secret1-name',
+        1: 'content for secret2-name',
         'secret1-name': 'content for secret1-name',
         'secret2-name': 'content for secret2-name'
       }),
