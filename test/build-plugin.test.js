@@ -23,7 +23,7 @@ beforeEach(async () => {
   fp.returns({})
 })
 
-test('builds a fastify plugin', (t) => {
+test('builds a fastify plugin', async (t) => {
   const plugin = buildPlugin(Client, {
     option: 'option1'
   })
@@ -36,8 +36,6 @@ test('builds a fastify plugin', (t) => {
   t.equal(opts.option, 'option1', 'forward provided options')
 
   t.equal(plugin.Client, Client, 'also exports client')
-
-  t.end()
 })
 
 test('plugin', async (t) => {
@@ -46,9 +44,7 @@ test('plugin', async (t) => {
   })
   const plugin = fp.firstCall.args[0]
 
-  t.test('no namespace', async (t) => {
-    t.plan(2)
-
+  t.test('no namespace', async () => {
     const decorate = sinon.spy()
 
     await plugin(
@@ -61,19 +57,13 @@ test('plugin', async (t) => {
       }
     )
 
-    t.ok(decorate.called, 'decorates fastify')
-    t.ok(
-      decorate.calledWith('secrets', {
-        secret1: 'content for secret1-name',
-        secret2: 'content for secret2-name'
-      }),
-      'decorates with secrets content'
-    )
+    sinon.assert.calledWith(decorate, 'secrets', {
+      secret1: 'content for secret1-name',
+      secret2: 'content for secret2-name'
+    })
   })
 
-  t.test('no namespace - secrets array', async (t) => {
-    t.plan(2)
-
+  t.test('no namespace - secrets array', async () => {
     const decorate = sinon.spy()
 
     await plugin(
@@ -83,21 +73,13 @@ test('plugin', async (t) => {
       }
     )
 
-    t.ok(decorate.called, 'decorates fastify')
-    t.ok(
-      decorate.calledWith('secrets', {
-        0: 'content for secret1-name',
-        1: 'content for secret2-name',
-        'secret1-name': 'content for secret1-name',
-        'secret2-name': 'content for secret2-name'
-      }),
-      'decorates with secrets content'
-    )
+    sinon.assert.calledWith(decorate, 'secrets', {
+      'secret1-name': 'content for secret1-name',
+      'secret2-name': 'content for secret2-name'
+    })
   })
 
   t.test('no namespace - secrets exists', async (t) => {
-    t.plan(2)
-
     const decorate = sinon.spy()
 
     const promise = plugin(
@@ -114,9 +96,7 @@ test('plugin', async (t) => {
     t.notOk(decorate.called, 'does not decorate fastify')
   })
 
-  t.test('namespace', async (t) => {
-    t.plan(2)
-
+  t.test('namespace', async () => {
     // emulate decorate behaviour
     const decorate = sinon.stub().callsFake(function decorate(key, obj) {
       this[key] = obj
@@ -133,21 +113,15 @@ test('plugin', async (t) => {
       }
     )
 
-    t.ok(decorate.called, 'decorates fastify')
-    t.ok(
-      decorate.calledWith('secrets', {
-        namespace1: {
-          secret1: 'content for secret1-name',
-          secret2: 'content for secret2-name'
-        }
-      }),
-      'decorates with secrets content'
-    )
+    sinon.assert.calledWith(decorate, 'secrets', {
+      namespace1: {
+        secret1: 'content for secret1-name',
+        secret2: 'content for secret2-name'
+      }
+    })
   })
 
   t.test('namespace - secrets exists', async (t) => {
-    t.plan(2)
-
     const decorate = sinon.spy()
     const secrets = {}
 
@@ -176,8 +150,6 @@ test('plugin', async (t) => {
   })
 
   t.test('namespace - namespace exists', async (t) => {
-    t.plan(3)
-
     const decorate = sinon.spy()
     const secrets = {
       namespace1: {}
@@ -213,8 +185,6 @@ test('plugin', async (t) => {
   })
 
   t.test('no options', async (t) => {
-    t.plan(2)
-
     const decorate = sinon.spy()
     const promise = plugin({ decorate })
 
@@ -223,8 +193,6 @@ test('plugin', async (t) => {
   })
 
   t.test('no secrets', async (t) => {
-    t.plan(2)
-
     const decorate = sinon.spy()
     const emptyOpts = {}
     const promise = plugin({ decorate }, emptyOpts)
@@ -234,9 +202,7 @@ test('plugin', async (t) => {
   })
 })
 
-test('client integration', (t) => {
-  t.plan(3)
-
+test('client integration', async (t) => {
   t.test('clientOptions are provided to client when instantiated', async (t) => {
     const constructorStub = sinon.stub()
 
@@ -268,8 +234,6 @@ test('client integration', (t) => {
   })
 
   t.test('client with close method', async (t) => {
-    t.plan(1)
-
     let closeCalled = false
 
     class Client {
@@ -301,8 +265,6 @@ test('client integration', (t) => {
   })
 
   t.test('client without close method', async (t) => {
-    t.plan(1)
-
     class Client {
       async get(key) {
         return key
