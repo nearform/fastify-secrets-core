@@ -4,7 +4,7 @@
 
 Simplify development of fastify-secrets plugins
 
-> This module is intended for developers implemeting fastify-secrets plugins, not for developers using fastify-plugin in their fastify projects
+> This module is intended for developers implementing fastify-secrets plugins, not for developers using fastify-plugin in their fastify projects
 
 ## Installation
 
