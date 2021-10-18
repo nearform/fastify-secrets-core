@@ -61,7 +61,6 @@ class Client {
     console.log('client close')
   }
 }
-
 ```
 
 ### Resulting plugin
@@ -69,16 +68,16 @@ class Client {
 The resulting plugin can be registered directly in fastify.
 These are the available options:
 
-- `secrets` (required). A non-empty object representing a map of secret keys and references. The plugin will decorate fastify with a `secrets` object with the same keys as this option but will replace the references with the actual values for the secret as fetched with `client.get(reference)`
+- `secrets` (required). A non-empty object representing a map of secret keys and references, or an array of strings. The plugin will decorate fastify with a `secrets` object with the same keys as this option (for object values) or with the same keys as the array elements (for array values) but will replace the references with the actual values for the secret as fetched with `client.get(reference)`
 - `namespace` (optional). If present, the plugin will add the secret values to `fastify.secrets.namespace` instead of `fastify.secrets`.
-- `concurrency` (optional, defaults to 5). How  many concurrent call will be made to `client.get`. This is handled by `fastify-secrets-core` and it's transparent to the implementation.
+- `concurrency` (optional, defaults to 5). How many concurrent call will be made to `client.get`. This is handled by `fastify-secrets-core` and it's transparent to the implementation.
 - `clientOptions` (optional). A value that will be provided to the constructor of the `Client`. Useful to allow plugin users to customize the plugin.
 
 The plugin will also expose the original Client for uses outside of fastify (i.e. db migrations and scripts)
 
 #### Example
 
-Assuming a plugin is built as per the previous examples, it can be used as
+Assuming a plugin is built as per the previous examples, it can be used as:
 
 ```js
 fastify.register(plugin, {
@@ -96,7 +95,23 @@ fastify.register(plugin, {
 await fastify.ready()
 
 console.log(fastify.secrets.db.pass)
+```
 
+Or, with an array `secrets` option:
+
+```js
+fastify.register(plugin, {
+  namespace: 'db',
+  concurrency: 5,
+  secrets: ['PG_USER', 'PG_PASS'],
+  clientOptions: {
+    optional: 'value'
+  }
+})
+
+await fastify.ready()
+
+console.log(fastify.secrets.db.PG_PASS)
 ```
 
 ## Contributing
