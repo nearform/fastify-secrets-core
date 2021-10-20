@@ -32,8 +32,8 @@
   },
   "dependencies": {
     "fastify-plugin": "^3.0.0",
-    "p-props": "^4.0.0",
-    "p-reduce": "^2.1.0"
+    "p-map": "^4.0.0",
+    "p-props": "^4.0.0"
   },
   "devDependencies": {
     "eslint": "^8.0.0",
