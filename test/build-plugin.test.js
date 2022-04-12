@@ -136,7 +136,7 @@ test('plugin', async (t) => {
       }
     )
 
-    t.notOk(decorate.called, 'does not decorate fastify')
+    t.notOk(decorate.calledWith('secrets'), 'does not decorate fastify with secrets')
     t.same(
       secrets,
       {
@@ -286,5 +286,27 @@ test('client integration', async (t) => {
     )
 
     await t.resolves(promise, 'does not fail')
+  })
+})
+
+test('client wrapper', async (t) => {
+  buildPlugin(Client)
+  const plugin = fp.firstCall.args[0]
+
+  t.test("is exposed as 'secretClient'", async (t) => {
+    const decorate = sinon.spy()
+    const secrets = {}
+
+    await plugin(
+      { decorate, secrets },
+      {
+        namespace: 'client-wrapper',
+        secrets: {
+          secret1: 'secret1-name'
+        }
+      }
+    )
+
+    t.ok(decorate.calledWith('secretClient'), 'decorates fastify with client wrapper')
   })
 })
