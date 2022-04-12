@@ -114,6 +114,27 @@ await fastify.ready()
 console.log(fastify.secrets.db.PG_PASS)
 ```
 
+#### Refreshing Secrets
+
+In the event secrets need to be dynamically refreshed, a wrapper is also registered that exposes a refresh method.
+
+```js
+fastify.register(plugin, {
+  secrets: ['TOKEN'],
+  namespace: "auth"
+})
+
+await fastify.ready()
+
+console.log(fastify.secrets.auth.TOKEN) // Initial secret value
+
+await fastify.secretsClient.refresh("TOKEN")
+
+console.log(fastify.secrets.auth.TOKEN) // Refreshed token value
+```
+
+
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md)
