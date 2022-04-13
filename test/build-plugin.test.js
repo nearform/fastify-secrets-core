@@ -5,7 +5,7 @@ const sinon = require('sinon')
 const proxyquire = require('proxyquire')
 
 const fp = sinon.stub()
-const buildPlugin = proxyquire('../lib/build-plugin', {
+const { buildPlugin } = proxyquire('../lib/build-plugin', {
   'fastify-plugin': fp
 })
 
@@ -293,14 +293,12 @@ test('client wrapper', async (t) => {
   buildPlugin(Client)
   const plugin = fp.firstCall.args[0]
 
-  t.test("is exposed as 'secretClient'", async (t) => {
+  t.test("is exposed as 'secretClient' with no namespace", async (t) => {
     const decorate = sinon.spy()
-    const secrets = {}
 
     await plugin(
-      { decorate, secrets },
+      { decorate },
       {
-        namespace: 'client-wrapper',
         secrets: {
           secret1: 'secret1-name'
         }
@@ -308,5 +306,167 @@ test('client wrapper', async (t) => {
     )
 
     t.ok(decorate.calledWith('secretClient'), 'decorates fastify with client wrapper')
+  })
+
+  t.test('is prefixed in the event a namespace is present', async (t) => {
+    const decorate = sinon.spy()
+
+    await plugin(
+      { decorate, secrets: {} },
+      {
+        namespace: 'test',
+        secrets: {
+          secret1: 'secret1-name'
+        }
+      }
+    )
+
+    t.ok(decorate.calledWith('testSecretClient'), 'decorates fastify with client wrapper')
+  })
+
+  class MockClient {
+    constructor() {
+      this.invokeCount = {}
+    }
+
+    async get(key) {
+      if (this.invokeCount[key] === undefined) {
+        this.invokeCount[key] = 1
+      } else {
+        this.invokeCount[key] += 1
+      }
+      return `value for ${key} - ${this.invokeCount[key]}`
+    }
+  }
+
+  t.test('allows for specific secrets to be refreshed', async (t) => {
+    buildPlugin(MockClient)
+    const plugin = fp.firstCall.args[0]
+
+    const decorate = sinon.stub().callsFake((key, value) => {
+      fastifyMock[key] = value
+    })
+
+    const fastifyMock = {
+      decorate
+    }
+
+    await plugin(fastifyMock, {
+      secrets: ['test', 'test2']
+    })
+
+    await fastifyMock.secretClient('test')
+
+    t.equal(fastifyMock.secrets.test, 'value for test - 2', 'refreshed secret has been called twice')
+    t.equal(fastifyMock.secrets.test2, 'value for test2 - 1', 'un-refreshed secret has been called once')
+  })
+
+  t.test('refreshes all secrets by default', async (t) => {
+    buildPlugin(MockClient)
+    const plugin = fp.firstCall.args[0]
+
+    const decorate = sinon.stub().callsFake((key, value) => {
+      fastifyMock[key] = value
+    })
+
+    const fastifyMock = {
+      decorate
+    }
+
+    await plugin(fastifyMock, {
+      secrets: ['test', 'test2']
+    })
+
+    await fastifyMock.secretClient()
+
+    t.equal(fastifyMock.secrets.test, 'value for test - 2', 'refreshed secret has been called twice')
+    t.equal(fastifyMock.secrets.test2, 'value for test2 - 2', 'refreshed secret has been called twice')
+  })
+
+  t.test('refreshes a specified set of secrets', async (t) => {
+    buildPlugin(MockClient)
+    const plugin = fp.firstCall.args[0]
+
+    const decorate = sinon.stub().callsFake((key, value) => {
+      fastifyMock[key] = value
+    })
+
+    const fastifyMock = {
+      decorate
+    }
+
+    await plugin(fastifyMock, {
+      secrets: ['test', 'test2', 'test3']
+    })
+
+    await fastifyMock.secretClient(['test', 'test2'])
+
+    t.equal(fastifyMock.secrets.test, 'value for test - 2', 'refreshed secret has been called twice')
+    t.equal(fastifyMock.secrets.test2, 'value for test2 - 2', 'refreshed secret has been called twice')
+    t.equal(fastifyMock.secrets.test3, 'value for test3 - 1', 'un-refreshed secret has been called once')
+  })
+
+  t.test('respects namespaces when refreshing', async (t) => {
+    buildPlugin(MockClient)
+    const plugin = fp.firstCall.args[0]
+
+    const decorate = sinon.stub().callsFake((key, value) => {
+      fastifyMock[key] = value
+    })
+
+    const fastifyMock = {
+      decorate,
+      secrets: {}
+    }
+
+    await plugin(fastifyMock, {
+      namespace: 'testns',
+      secrets: ['test', 'test2']
+    })
+
+    await fastifyMock.testnsSecretClient('test')
+
+    t.equal(fastifyMock.secrets.testns.test, 'value for test - 2', 'refreshed secret has been called twice')
+    t.equal(fastifyMock.secrets.testns.test2, 'value for test2 - 1', 'un-refreshed secret has been called once')
+  })
+
+  t.test('will instantiate a fresh client if there is a provided close method', async (t) => {
+    const constructionStub = sinon.stub()
+    const closeStub = sinon.stub()
+    class MockCloseClient {
+      constructor() {
+        constructionStub()
+      }
+
+      async get(key) {
+        return `value for ${key}`
+      }
+
+      async close() {
+        closeStub()
+      }
+    }
+
+    buildPlugin(MockCloseClient)
+    const plugin = fp.firstCall.args[0]
+
+    const decorate = sinon.stub().callsFake((key, value) => {
+      fastifyMock[key] = value
+    })
+
+    const fastifyMock = {
+      decorate
+    }
+
+    await plugin(fastifyMock, {
+      secrets: ['test']
+    })
+
+    t.ok(closeStub.calledOnce, 'close is invoked after initial secret setup')
+
+    await fastifyMock.secretClient()
+
+    t.ok(constructionStub.calledTwice, 'constructor has been called twice')
+    t.ok(closeStub.calledTwice, 'close method has been called twice')
   })
 })
