@@ -116,24 +116,54 @@ console.log(fastify.secrets.db.PG_PASS)
 
 #### Refreshing Secrets
 
-In the event secrets need to be dynamically refreshed, a wrapper is also registered that exposes a refresh method.
+In the event secrets need to be dynamically refreshed, a refresh method is exposed to allow for the refreshing of single, sets, or all secrets scoped to the provided namespace. The signature of the refresh method is as follows,
+
+`async refresh(refs)`
+
+- `refs` (optional). refs can be a single secret, an array of secrets, or left undefined to refresh all secrets belonging to the namespace.
+
+The most basic example of usage can be seen below,
 
 ```js
 fastify.register(plugin, {
-  secrets: ['TOKEN'],
-  namespace: "auth"
+  secrets: ['TOKEN']
 })
 
 await fastify.ready()
 
-console.log(fastify.secrets.auth.TOKEN) // Initial secret value
-
-await fastify.secretsClient.refresh("TOKEN")
-
-console.log(fastify.secrets.auth.TOKEN) // Refreshed token value
+const refreshedSecrets = await fastify.secrets.refresh() // { 'TOKEN': 'refreshed value' }
 ```
 
+##### Namespacing
 
+When working with multiple secret providers, it is highly recommended that you scope your secrets by a namespace, this will prevent conflicts with other secret providers and allow for more atomic refreshing if necessary. Note the example below for usage, in particular the `refresh` method is exposed on the registered namespace and not at the root of the secrets object.
+
+```js
+fastify.register(plugin, {
+  namespace: 'aws',
+  secrets: ['TOKEN']
+})
+
+await fastify.ready()
+
+const refreshedSecrets = await fastify.secrets.aws.refresh() // { 'TOKEN': 'refreshed value' }
+```
+
+##### Refresh Aliasing
+
+It's possible that a secret name may conflict with the `refresh` method, in the event this happens you can supply an alias for the refresh function in order to avoid conflicts.
+
+```js
+fastify.register(plugin, {
+  secrets: ['TOKEN'],
+  namespace: 'auth',
+  refreshAlias: 'update'
+})
+
+await fastify.ready()
+
+const refreshedSecrets = await fastify.secrets.refresh() // { 'TOKEN': 'refreshed value' }
+```
 
 ## Contributing
 
