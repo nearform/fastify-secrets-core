@@ -5,7 +5,7 @@ const sinon = require('sinon')
 const proxyquire = require('proxyquire')
 
 const fp = sinon.stub()
-const { buildPlugin } = proxyquire('../lib/build-plugin', {
+const buildPlugin = proxyquire('../lib/build-plugin', {
   'fastify-plugin': fp
 })
 
@@ -447,7 +447,7 @@ test('client wrapper', async (t) => {
     t.equal(fastifyMock.secrets.test2, 'value for test2 - 2', 'refreshed secret has been called twice')
   })
 
-  t.test('refreshes a specified set of secrets', async (t) => {
+  t.test('refreshes a specified set of secrets with array notation', async (t) => {
     buildPlugin(MockClient)
     const plugin = fp.firstCall.args[0]
 
@@ -468,6 +468,34 @@ test('client wrapper', async (t) => {
     t.equal(fastifyMock.secrets.test, 'value for test - 2', 'refreshed secret has been called twice')
     t.equal(fastifyMock.secrets.test2, 'value for test2 - 2', 'refreshed secret has been called twice')
     t.equal(fastifyMock.secrets.test3, 'value for test3 - 1', 'un-refreshed secret has been called once')
+  })
+
+  t.test('refreshes a specified set of secrets with object notation', async (t) => {
+    buildPlugin(MockClient)
+    const plugin = fp.firstCall.args[0]
+
+    const decorate = sinon.stub().callsFake((key, value) => {
+      fastifyMock[key] = value
+    })
+
+    const fastifyMock = {
+      decorate
+    }
+
+    const defaultSecrets = {
+      test: 'secretAlias',
+      test2: 'secretAlias2',
+      test3: 'secretAlias3'
+    }
+    await plugin(fastifyMock, {
+      secrets: defaultSecrets
+    })
+
+    await fastifyMock.secrets.refresh()
+
+    t.equal(fastifyMock.secrets.test, 'value for secretAlias - 2', 'refreshed secret has been called twice')
+    t.equal(fastifyMock.secrets.test2, 'value for secretAlias2 - 2', 'refreshed secret has been called twice')
+    t.equal(fastifyMock.secrets.test3, 'value for secretAlias3 - 2', 'refreshed secret has been called twice')
   })
 
   t.test('respects namespaces when refreshing', async (t) => {

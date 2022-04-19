@@ -116,7 +116,7 @@ console.log(fastify.secrets.db.PG_PASS)
 
 #### Refreshing Secrets
 
-In the event secrets need to be dynamically refreshed, a refresh method is exposed to allow for the refreshing of single, sets, or all secrets scoped to the provided namespace. The signature of the refresh method is as follows,
+In the event secrets need to be dynamically refreshed, a refresh method is exposed to allow for the refreshing of single, sets, or all secrets scoped to the provided namespace. The signature of the refresh method is as follows:
 
 `async refresh(refs)`
 
@@ -162,7 +162,7 @@ fastify.register(plugin, {
 
 await fastify.ready()
 
-const refreshedSecrets = await fastify.secrets.refresh() // { 'TOKEN': 'refreshed value' }
+const refreshedSecrets = await fastify.secrets.update() // { 'TOKEN': 'refreshed value' }
 ```
 
 ## Contributing
