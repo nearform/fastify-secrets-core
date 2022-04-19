@@ -104,7 +104,7 @@ test('plugin', async (t) => {
     t.notOk(decorate.called, 'does not decorate fastify')
   })
 
-  t.test('namespace', async () => {
+  t.test('namespace', async (t) => {
     const decorate = sinon.stub().callsFake((key, value) => {
       fastifyMock[key] = value
     })
