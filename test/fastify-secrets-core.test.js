@@ -4,8 +4,6 @@ const { test } = require('tap')
 
 const { buildPlugin } = require('../lib/fastify-secrets-core')
 
-test('buildPlugin should be defined', (t) => {
-  t.plan(1)
-
+test('buildPlugin should be defined', async (t) => {
   t.ok(buildPlugin)
 })
