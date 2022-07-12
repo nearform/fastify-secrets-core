@@ -31,7 +31,7 @@
     "node": ">= 12.13.0"
   },
   "dependencies": {
-    "fastify-plugin": "^3.0.1",
+    "fastify-plugin": "^4.0.0",
     "p-map": "^4.0.0",
     "p-props": "^4.0.0"
   },
