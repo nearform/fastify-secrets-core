@@ -32,7 +32,6 @@ impoit Client from './client.js'
 
 const plugin = buildPlugin(Client, {
   name: 'fastify-secrets-example'
-  m
 })
 ```
 
