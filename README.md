@@ -28,7 +28,7 @@ Create a new fastify plugin by calling `buildPlugin` and providing a client clas
 
 ```js
 import { buildPlugin } from 'fastify-secrets-core.js'
-impoit Client from './client.js'
+import Client from './client.js'
 
 const plugin = buildPlugin(Client, {
   name: 'fastify-secrets-example'
