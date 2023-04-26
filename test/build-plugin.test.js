@@ -1,11 +1,12 @@
 'use strict'
 
-const { test, beforeEach } = require('tap')
-const sinon = require('sinon')
-const proxyquire = require('proxyquire')
+import { test, beforeEach } from 'tap'
+import sinon from 'sinon'
+import esmock from 'esmock'
 
 const fp = sinon.stub()
-const buildPlugin = proxyquire('../lib/build-plugin', {
+
+const { buildPlugin } = await esmock('../lib/build-plugin.js', {
   'fastify-plugin': fp
 })
 

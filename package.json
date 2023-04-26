@@ -2,13 +2,14 @@
   "name": "fastify-secrets-core",
   "version": "2.0.0",
   "description": "Simplify development of fastify-secrets plugins",
+  "type": "module",
   "main": "lib/fastify-secrets-core.js",
   "scripts": {
     "lint": "eslint lib/**/*.js test/**/*.js",
     "lint:fix": "npm run lint -- --fix",
     "lint:staged": "lint-staged",
-    "test": "tap --no-browser --coverage-report=html --coverage-report=text  test",
-    "test:ci": "tap --no-color --coverage-report=json --coverage-report=text test"
+    "test": "NODE_OPTIONS=--loader=esmock tap --no-browser --coverage-report=html --coverage-report=text  test",
+    "test:ci": "NODE_OPTIONS=--loader=esmock tap --no-color --coverage-report=json --coverage-report=text test"
   },
   "repository": {
     "type": "git",
@@ -43,10 +44,10 @@
     "eslint-plugin-n": "^15.2.3",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-promise": "^6.0.0",
+    "esmock": "^2.2.1",
     "husky": "^8.0.0",
     "lint-staged": "^13.0.0",
     "prettier": "^2.1.2",
-    "proxyquire": "^2.1.3",
     "sinon": "^15.0.0",
     "tap": "^16.0.0"
   },

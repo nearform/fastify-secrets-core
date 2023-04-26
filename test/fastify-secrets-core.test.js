@@ -1,8 +1,7 @@
 'use strict'
 
-const { test } = require('tap')
-
-const { buildPlugin } = require('../lib/fastify-secrets-core')
+import { test } from 'tap'
+import buildPlugin from '../lib/fastify-secrets-core.js'
 
 test('buildPlugin should be defined', async (t) => {
   t.ok(buildPlugin)
