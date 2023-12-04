@@ -1,6 +1,6 @@
 {
   "name": "fastify-secrets-core",
-  "version": "2.1.3",
+  "version": "2.1.4",
   "description": "Simplify development of fastify-secrets plugins",
   "main": "lib/fastify-secrets-core.js",
   "scripts": {
