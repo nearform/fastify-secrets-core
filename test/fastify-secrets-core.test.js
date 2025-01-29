@@ -1,9 +1,10 @@
 'use strict'
 
-const { test } = require('tap')
+const { test } = require('node:test')
+const assert = require('node:assert/strict')
 
 const { buildPlugin } = require('../lib/fastify-secrets-core')
 
-test('buildPlugin should be defined', async (t) => {
-  t.ok(buildPlugin)
+test('buildPlugin should be defined', () => {
+  assert.ok(buildPlugin)
 })
