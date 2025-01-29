@@ -496,8 +496,16 @@ test('client wrapper', async (t) => {
     await fastifyMock.secrets.refresh()
 
     assert.strictEqual(fastifyMock.secrets.test, 'value for secretAlias - 2', 'refreshed secret has been called twice')
-    assert.strictEqual(fastifyMock.secrets.test2, 'value for secretAlias2 - 2', 'refreshed secret has been called twice')
-    assert.strictEqual(fastifyMock.secrets.test3, 'value for secretAlias3 - 2', 'refreshed secret has been called twice')
+    assert.strictEqual(
+      fastifyMock.secrets.test2,
+      'value for secretAlias2 - 2',
+      'refreshed secret has been called twice'
+    )
+    assert.strictEqual(
+      fastifyMock.secrets.test3,
+      'value for secretAlias3 - 2',
+      'refreshed secret has been called twice'
+    )
   })
 
   await test('respects namespaces when refreshing', async (t) => {
@@ -521,7 +529,11 @@ test('client wrapper', async (t) => {
     await fastifyMock.secrets.testns.refresh('test')
 
     assert.strictEqual(fastifyMock.secrets.testns.test, 'value for test - 2', 'refreshed secret has been called twice')
-    assert.strictEqual(fastifyMock.secrets.testns.test2, 'value for test2 - 1', 'un-refreshed secret has been called once')
+    assert.strictEqual(
+      fastifyMock.secrets.testns.test2,
+      'value for test2 - 1',
+      'un-refreshed secret has been called once'
+    )
   })
 
   await test('will instantiate a fresh client if there is a provided close method', async (t) => {
