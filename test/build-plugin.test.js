@@ -1,9 +1,10 @@
 'use strict'
 
 const { describe, test, beforeEach, mock } = require('node:test')
-const buildPlugin = require('../lib/build-plugin')
 
 const sinon = require('sinon')
+
+const buildPlugin = require('../lib/build-plugin')
 
 class Client {
   async get(key) {
@@ -19,11 +20,15 @@ beforeEach(async () => {
 
 test('builds a fastify plugin', async (t) => {
   const fp = mock.fn(() => ({}))
-  const plugin = buildPlugin(Client, {
-    option: 'option1'
-  }, {
-    fp
-  })
+  const plugin = buildPlugin(
+    Client,
+    {
+      option: 'option1'
+    },
+    {
+      fp
+    }
+  )
 
   t.assert.ok(fp, 'calls fastify-plugin')
 
@@ -36,15 +41,19 @@ test('builds a fastify plugin', async (t) => {
 })
 
 describe('plugin', () => {
-  let plugin;
+  let plugin
 
   beforeEach(() => {
     const fp = mock.fn(() => ({}))
-    plugin = buildPlugin(Client, {
-      option: 'option1'
-    }, {
-      fp
-    })
+    plugin = buildPlugin(
+      Client,
+      {
+        option: 'option1'
+      },
+      {
+        fp
+      }
+    )
     plugin = fp.mock.calls[0].arguments[0]
   })
 
@@ -311,14 +320,13 @@ describe('client integration', () => {
 })
 
 describe('client wrapper', () => {
-  let plugin;
+  let plugin
 
   beforeEach(() => {
     const fp = mock.fn(() => ({}))
     plugin = buildPlugin(Client, undefined, { fp })
     plugin = fp.mock.calls[0].arguments[0]
   })
-
 
   test("is exposed as 'refresh' at the root with no namespace", async (t) => {
     const decorate = sinon.stub().callsFake((key, value) => {
