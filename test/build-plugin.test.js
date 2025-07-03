@@ -347,7 +347,7 @@ describe('client wrapper', () => {
     })
 
     t.assert.ok(decorate.mock.calls.length > 0, 'decorates fastify with secrets')
-    t.assert.ok(decorate.mock.calls[0].arguments[0], 'secrets', 'decorates fastify with secrets')
+    t.assert.strictEqual(decorate.mock.calls[0].arguments[0], 'secrets', 'decorates fastify with secrets')
     t.assert.ok(fastifyMock.secrets.refresh, 'populates secrets with a refresh method')
   })
 
