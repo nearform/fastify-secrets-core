@@ -58,7 +58,7 @@ describe('plugin', () => {
   })
 
   test('no namespace', async (t) => {
-    const decorate = sinon.stub().callsFake((key, value) => {
+    const decorate = mock.fn((key, value) => {
       fastifyMock[key] = value
     })
     const fastifyMock = {
@@ -73,11 +73,14 @@ describe('plugin', () => {
     })
 
     t.assert.ok(typeof fastifyMock.secrets.refresh === 'function', 'refresh is defined as expected')
-    sinon.assert.calledWith(decorate, 'secrets', {
-      secret1: 'content for secret1-name',
-      secret2: 'content for secret2-name',
-      refresh: fastifyMock.secrets.refresh
-    })
+    t.assert.deepStrictEqual(decorate.mock.calls[0].arguments, [
+      'secrets',
+      {
+        secret1: 'content for secret1-name',
+        secret2: 'content for secret2-name',
+        refresh: fastifyMock.secrets.refresh
+      }
+    ])
   })
 
   test('no namespace - secrets array', async (t) => {
