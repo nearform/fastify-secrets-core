@@ -24,7 +24,7 @@ test('builds a fastify plugin', async (t) => {
     }
   )
 
-  t.assert.ok(fp, 'calls fastify-plugin')
+  t.assert.ok(fp.mock.calls.length > 0, 'calls fastify-plugin')
 
   const opts = fp.mock.calls[0].arguments[1]
 
