@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/nearform/fastify-secrets-core#readme",
   "engines": {
-    "node": ">=22"
+    "node": ">=20"
   },
   "dependencies": {
     "fastify-plugin": "^5.0.1",
