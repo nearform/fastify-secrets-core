@@ -2,6 +2,7 @@
   "name": "fastify-secrets-core",
   "version": "3.0.0",
   "description": "Simplify development of fastify-secrets plugins",
+  "type": "module",
   "main": "lib/fastify-secrets-core.js",
   "scripts": {
     "lint": "eslint lib/**/*.js test/**/*.js",

@@ -1,8 +1,6 @@
-'use strict'
+import { beforeEach, describe, mock, test } from 'node:test'
 
-const { describe, test, beforeEach, mock } = require('node:test')
-
-const buildPlugin = require('../lib/build-plugin')
+import buildPlugin from '../lib/build-plugin.js'
 
 class Client {
   async get(key) {
