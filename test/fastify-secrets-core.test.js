@@ -1,9 +1,11 @@
-'use strict'
+import { test } from 'node:test'
 
-const { test } = require('tap')
+import buildPluginModule, { buildPlugin } from '../lib/fastify-secrets-core.js'
 
-const { buildPlugin } = require('../lib/fastify-secrets-core')
+test('buildPlugin should be defined', (t) => {
+  t.assert.ok(buildPlugin)
+})
 
-test('buildPlugin should be defined', async (t) => {
-  t.ok(buildPlugin)
+test('buildPluginDefault should be defined', (t) => {
+  t.assert.ok(buildPluginModule)
 })

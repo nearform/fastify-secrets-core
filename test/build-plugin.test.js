@@ -1,13 +1,6 @@
-'use strict'
+import { beforeEach, describe, mock, test } from 'node:test'
 
-const { test, beforeEach } = require('tap')
-const sinon = require('sinon')
-const proxyquire = require('proxyquire')
-
-const fp = sinon.stub()
-const buildPlugin = proxyquire('../lib/build-plugin', {
-  'fastify-plugin': fp
-})
+import buildPlugin from '../lib/build-plugin.js'
 
 class Client {
   async get(key) {
@@ -17,35 +10,47 @@ class Client {
   async close() {}
 }
 
-beforeEach(async () => {
-  fp.resetHistory()
-  sinon.reset()
-  fp.returns({})
-})
-
 test('builds a fastify plugin', async (t) => {
-  const plugin = buildPlugin(Client, {
-    option: 'option1'
-  })
+  const fp = mock.fn(() => ({}))
+  const plugin = buildPlugin(
+    Client,
+    {
+      option: 'option1'
+    },
+    {
+      fp
+    }
+  )
 
-  t.ok(fp.called, 'calls fastify-plugin')
+  t.assert.ok(fp.mock.calls.length > 0, 'calls fastify-plugin')
 
-  const opts = fp.firstCall.args[1]
+  const opts = fp.mock.calls[0].arguments[1]
 
-  t.equal(opts.fastify, '5.x', 'adds option for fastify support')
-  t.equal(opts.option, 'option1', 'forward provided options')
+  t.assert.strictEqual(opts.fastify, '5.x', 'adds option for fastify support')
+  t.assert.strictEqual(opts.option, 'option1', 'forward provided options')
 
-  t.equal(plugin.Client, Client, 'also exports client')
+  t.assert.strictEqual(plugin.Client, Client, 'also exports client')
 })
 
-test('plugin', async (t) => {
-  buildPlugin(Client, {
-    option: 'option1'
-  })
-  const plugin = fp.firstCall.args[0]
+describe('plugin', () => {
+  let plugin
 
-  t.test('no namespace', async (t) => {
-    const decorate = sinon.stub().callsFake((key, value) => {
+  beforeEach(() => {
+    const fp = mock.fn(() => ({}))
+    plugin = buildPlugin(
+      Client,
+      {
+        option: 'option1'
+      },
+      {
+        fp
+      }
+    )
+    plugin = fp.mock.calls[0].arguments[0]
+  })
+
+  test('no namespace', async (t) => {
+    const decorate = mock.fn((key, value) => {
       fastifyMock[key] = value
     })
     const fastifyMock = {
@@ -59,16 +64,19 @@ test('plugin', async (t) => {
       }
     })
 
-    t.ok(typeof fastifyMock.secrets.refresh === 'function', 'refresh is defined as expected')
-    sinon.assert.calledWith(decorate, 'secrets', {
-      secret1: 'content for secret1-name',
-      secret2: 'content for secret2-name',
-      refresh: fastifyMock.secrets.refresh
-    })
+    t.assert.ok(typeof fastifyMock.secrets.refresh === 'function', 'refresh is defined as expected')
+    t.assert.deepStrictEqual(decorate.mock.calls[0].arguments, [
+      'secrets',
+      {
+        secret1: 'content for secret1-name',
+        secret2: 'content for secret2-name',
+        refresh: fastifyMock.secrets.refresh
+      }
+    ])
   })
 
-  t.test('no namespace - secrets array', async (t) => {
-    const decorate = sinon.stub().callsFake((key, value) => {
+  test('no namespace - secrets array', async (t) => {
+    const decorate = mock.fn((key, value) => {
       fastifyMock[key] = value
     })
     const fastifyMock = {
@@ -79,16 +87,19 @@ test('plugin', async (t) => {
       secrets: ['secret1-name', 'secret2-name']
     })
 
-    t.ok(typeof fastifyMock.secrets.refresh === 'function', 'refresh is defined as expected')
-    sinon.assert.calledWith(decorate, 'secrets', {
-      'secret1-name': 'content for secret1-name',
-      'secret2-name': 'content for secret2-name',
-      refresh: fastifyMock.secrets.refresh
-    })
+    t.assert.ok(typeof fastifyMock.secrets.refresh === 'function', 'refresh is defined as expected')
+    t.assert.deepStrictEqual(decorate.mock.calls[0].arguments, [
+      'secrets',
+      {
+        'secret1-name': 'content for secret1-name',
+        'secret2-name': 'content for secret2-name',
+        refresh: fastifyMock.secrets.refresh
+      }
+    ])
   })
 
-  t.test('no namespace - secrets exists', async (t) => {
-    const decorate = sinon.spy()
+  test('no namespace - secrets exists', async (t) => {
+    const decorate = mock.fn()
 
     const promise = plugin(
       { decorate, secrets: {} },
@@ -100,12 +111,12 @@ test('plugin', async (t) => {
       }
     )
 
-    await t.rejects(promise, new Error('fastify-secrets has already been registered'), 'registration fails')
-    t.notOk(decorate.called, 'does not decorate fastify')
+    await t.assert.rejects(promise, new Error('fastify-secrets has already been registered'), 'registration fails')
+    t.assert.ok(!decorate.mock.calls.length, 'does not decorate fastify')
   })
 
-  t.test('namespace', async (t) => {
-    const decorate = sinon.stub().callsFake((key, value) => {
+  test('namespace', async (t) => {
+    const decorate = mock.fn((key, value) => {
       fastifyMock[key] = value
     })
     const fastifyMock = {
@@ -120,18 +131,21 @@ test('plugin', async (t) => {
       }
     })
 
-    t.ok(typeof fastifyMock.secrets.namespace1.refresh === 'function', 'refresh is defined as expected')
-    sinon.assert.calledWith(decorate, 'secrets', {
-      namespace1: {
-        secret1: 'content for secret1-name',
-        secret2: 'content for secret2-name',
-        refresh: fastifyMock.secrets.namespace1.refresh
+    t.assert.ok(typeof fastifyMock.secrets.namespace1.refresh === 'function', 'refresh is defined as expected')
+    t.assert.deepStrictEqual(decorate.mock.calls[0].arguments, [
+      'secrets',
+      {
+        namespace1: {
+          secret1: 'content for secret1-name',
+          secret2: 'content for secret2-name',
+          refresh: fastifyMock.secrets.namespace1.refresh
+        }
       }
-    })
+    ])
   })
 
-  t.test('namespace - secrets exists', async (t) => {
-    const decorate = sinon.stub().callsFake((key, value) => {
+  test('namespace - secrets exists', async (t) => {
+    const decorate = mock.fn((key, value) => {
       fastifyMock[key] = value
     })
     const expectedSecrets = {}
@@ -148,9 +162,9 @@ test('plugin', async (t) => {
       }
     })
 
-    t.ok(typeof fastifyMock.secrets.namespace1.refresh === 'function', 'refresh is defined as expected')
-    t.notOk(decorate.calledWith('secrets'), 'does not decorate fastify with secrets')
-    t.same(
+    t.assert.ok(typeof fastifyMock.secrets.namespace1.refresh === 'function', 'refresh is defined as expected')
+    t.assert.strictEqual(decorate.mock.calls.length, 0, 'does not decorate fastify with secrets')
+    t.assert.deepStrictEqual(
       expectedSecrets,
       {
         namespace1: {
@@ -163,8 +177,8 @@ test('plugin', async (t) => {
     )
   })
 
-  t.test('namespace - namespace exists', async (t) => {
-    const decorate = sinon.spy()
+  test('namespace - namespace exists', async (t) => {
+    const decorate = mock.fn()
     const secrets = {
       namespace1: {}
     }
@@ -180,13 +194,13 @@ test('plugin', async (t) => {
       }
     )
 
-    await t.rejects(
+    await t.assert.rejects(
       promise,
       new Error(`fastify-secrets 'namespace1' instance name has already been registered`),
       'registration fails'
     )
-    t.notOk(decorate.called, 'does not decorate fastify')
-    t.notSame(
+    t.assert.strictEqual(decorate.mock.calls.length, 0, 'does not decorate fastify')
+    t.assert.notDeepEqual(
       secrets,
       {
         namespace1: {
@@ -198,27 +212,27 @@ test('plugin', async (t) => {
     )
   })
 
-  t.test('no options', async (t) => {
-    const decorate = sinon.spy()
+  test('no options', async (t) => {
+    const decorate = mock.fn()
     const promise = plugin({ decorate })
 
-    await t.rejects(promise, new Error(`fastify-secrets: no secrets requested`), 'registration fails')
-    t.notOk(decorate.called, 'does not decorate fastify')
+    await t.assert.rejects(promise, new Error(`fastify-secrets: no secrets requested`), 'registration fails')
+    t.assert.strictEqual(decorate.mock.calls.length, 0, 'does not decorate fastify')
   })
 
-  t.test('no secrets', async (t) => {
-    const decorate = sinon.spy()
+  test('no secrets', async (t) => {
+    const decorate = mock.fn()
     const emptyOpts = {}
     const promise = plugin({ decorate }, emptyOpts)
 
-    await t.rejects(promise, new Error(`fastify-secrets: no secrets requested`), 'registration fails')
-    t.notOk(decorate.called, 'does not decorate fastify')
+    await t.assert.rejects(promise, new Error(`fastify-secrets: no secrets requested`), 'registration fails')
+    t.assert.strictEqual(decorate.mock.calls.length, 0, 'does not decorate fastify')
   })
 })
 
-test('client integration', async (t) => {
-  t.test('clientOptions are provided to client when instantiated', async (t) => {
-    const constructorStub = sinon.stub()
+describe('client integration', () => {
+  test('clientOptions are provided to client when instantiated', async (t) => {
+    const constructorStub = mock.fn()
 
     class Client {
       constructor(options) {
@@ -228,10 +242,11 @@ test('client integration', async (t) => {
       async get() {}
     }
 
-    buildPlugin(Client)
+    const fp = mock.fn(() => ({}))
+    buildPlugin(Client, undefined, { fp })
 
-    const plugin = fp.firstCall.args[0]
-    const decorate = sinon.spy()
+    const plugin = fp.mock.calls[0].arguments[0]
+    const decorate = mock.fn()
     const clientOptions = { client: 'options' }
 
     await plugin(
@@ -244,10 +259,11 @@ test('client integration', async (t) => {
       }
     )
 
-    sinon.assert.calledOnceWithExactly(constructorStub, clientOptions)
+    t.assert.strictEqual(constructorStub.mock.calls.length, 1, 'client constructor is called')
+    t.assert.strictEqual(constructorStub.mock.calls[0].arguments[0], clientOptions)
   })
 
-  t.test('client with close method', async (t) => {
+  test('client with close method', async (t) => {
     let closeCalled = false
 
     class Client {
@@ -260,10 +276,11 @@ test('client integration', async (t) => {
       }
     }
 
-    buildPlugin(Client)
-    const plugin = fp.firstCall.args[0]
+    const fp = mock.fn(() => ({}))
+    buildPlugin(Client, undefined, { fp })
+    const plugin = fp.mock.calls[0].arguments[0]
 
-    const decorate = sinon.spy()
+    const decorate = mock.fn()
 
     await plugin(
       { decorate },
@@ -275,19 +292,20 @@ test('client integration', async (t) => {
       }
     )
 
-    t.ok(closeCalled, 'calls client.close if present')
+    t.assert.ok(closeCalled, 'calls client.close if present')
   })
 
-  t.test('client without close method', async (t) => {
+  test('client without close method', async (t) => {
     class Client {
       async get(key) {
         return key
       }
     }
 
-    buildPlugin(Client)
-    const plugin = fp.firstCall.args[0]
-    const decorate = sinon.spy()
+    const fp = mock.fn(() => ({}))
+    buildPlugin(Client, undefined, { fp })
+    const plugin = fp.mock.calls[0].arguments[0]
+    const decorate = mock.fn()
 
     const promise = plugin(
       { decorate },
@@ -299,16 +317,21 @@ test('client integration', async (t) => {
       }
     )
 
-    await t.resolves(promise, 'does not fail')
+    await t.assert.doesNotReject(() => promise, 'does not fail')
   })
 })
 
-test('client wrapper', async (t) => {
-  buildPlugin(Client)
-  const plugin = fp.firstCall.args[0]
+describe('client wrapper', () => {
+  let plugin
 
-  t.test("is exposed as 'refresh' at the root with no namespace", async (t) => {
-    const decorate = sinon.stub().callsFake((key, value) => {
+  beforeEach(() => {
+    const fp = mock.fn(() => ({}))
+    plugin = buildPlugin(Client, undefined, { fp })
+    plugin = fp.mock.calls[0].arguments[0]
+  })
+
+  test("is exposed as 'refresh' at the root with no namespace", async (t) => {
+    const decorate = mock.fn((key, value) => {
       fastifyMock[key] = value
     })
     const fastifyMock = {
@@ -321,12 +344,13 @@ test('client wrapper', async (t) => {
       }
     })
 
-    t.ok(decorate.calledWith('secrets'), 'decorates fastify with secrets')
-    t.ok(fastifyMock.secrets.refresh, 'populates secrets with a refresh method')
+    t.assert.ok(decorate.mock.calls.length > 0, 'decorates fastify with secrets')
+    t.assert.strictEqual(decorate.mock.calls[0].arguments[0], 'secrets', 'decorates fastify with secrets')
+    t.assert.ok(fastifyMock.secrets.refresh, 'populates secrets with a refresh method')
   })
 
-  t.test("is exposed as 'refresh' on the namespace scope when provided", async (t) => {
-    const decorate = sinon.stub().callsFake((key, value) => {
+  test("is exposed as 'refresh' on the namespace scope when provided", async (t) => {
+    const decorate = mock.fn((key, value) => {
       fastifyMock[key] = value
     })
     const fastifyMock = {
@@ -340,12 +364,13 @@ test('client wrapper', async (t) => {
       }
     })
 
-    t.ok(decorate.calledWith('secrets'), 'decorates fastify with secrets')
-    t.ok(fastifyMock.secrets.test.refresh, 'populates secrets namespace with a refresh method')
+    t.assert.ok(decorate.mock.calls.length > 0, 'decorates fastify with secrets')
+    t.assert.ok(decorate.mock.calls[0].arguments[0], 'secrets', 'decorates fastify with secrets')
+    t.assert.ok(fastifyMock.secrets.test.refresh, 'populates secrets namespace with a refresh method')
   })
 
-  t.test('can be aliased using the refreshAlias option', async (t) => {
-    const decorate = sinon.stub().callsFake((key, value) => {
+  test('can be aliased using the refreshAlias option', async (t) => {
+    const decorate = mock.fn((key, value) => {
       fastifyMock[key] = value
     })
     const fastifyMock = {
@@ -360,12 +385,13 @@ test('client wrapper', async (t) => {
       }
     })
 
-    t.ok(decorate.calledWith('secrets'), 'decorates fastify with secrets')
-    t.ok(fastifyMock.secrets.test.update, 'populates secrets namespace with an "update" method')
+    t.assert.ok(decorate.mock.calls.length > 0, 'decorates fastify with secrets')
+    t.assert.ok(decorate.mock.calls[0].arguments[0], 'secrets', 'decorates fastify with secrets')
+    t.assert.ok(fastifyMock.secrets.test.update, 'populates secrets namespace with an "update" method')
   })
 
-  t.test('persists across refresh invocations', async (t) => {
-    const decorate = sinon.stub().callsFake((key, value) => {
+  test('persists across refresh invocations', async (t) => {
+    const decorate = mock.fn((key, value) => {
       fastifyMock[key] = value
     })
     const fastifyMock = {
@@ -379,13 +405,15 @@ test('client wrapper', async (t) => {
       }
     })
 
-    t.ok(decorate.calledWith('secrets'), 'decorates fastify with secrets')
-    t.ok(fastifyMock.secrets.test.refresh, 'populates secrets namespace with a refresh method')
+    t.assert.ok(decorate.mock.calls.length > 0, 'decorates fastify with secrets')
+    t.assert.ok(decorate.mock.calls[0].arguments[0], 'secrets', 'decorates fastify with secrets')
+    t.assert.ok(fastifyMock.secrets.test.refresh, 'populates secrets namespace with a refresh method')
 
     await fastifyMock.secrets.test.refresh()
 
-    t.ok(decorate.calledWith('secrets'), 'decorates fastify with secrets')
-    t.ok(fastifyMock.secrets.test.refresh, 'populates secrets namespace with a refresh method')
+    t.assert.ok(decorate.mock.calls.length > 0, 'decorates fastify with secrets')
+    t.assert.ok(decorate.mock.calls[0].arguments[0], 'secrets', 'decorates fastify with secrets')
+    t.assert.ok(fastifyMock.secrets.test.refresh, 'populates secrets namespace with a refresh method')
   })
 
   class MockClient {
@@ -403,11 +431,12 @@ test('client wrapper', async (t) => {
     }
   }
 
-  t.test('allows for specific secrets to be refreshed', async (t) => {
-    buildPlugin(MockClient)
-    const plugin = fp.firstCall.args[0]
+  test('allows for specific secrets to be refreshed', async (t) => {
+    const fp = mock.fn(() => ({}))
+    buildPlugin(MockClient, undefined, { fp })
+    const plugin = fp.mock.calls[0].arguments[0]
 
-    const decorate = sinon.stub().callsFake((key, value) => {
+    const decorate = mock.fn((key, value) => {
       fastifyMock[key] = value
     })
 
@@ -421,15 +450,16 @@ test('client wrapper', async (t) => {
 
     await fastifyMock.secrets.refresh('test')
 
-    t.equal(fastifyMock.secrets.test, 'value for test - 2', 'refreshed secret has been called twice')
-    t.equal(fastifyMock.secrets.test2, 'value for test2 - 1', 'un-refreshed secret has been called once')
+    t.assert.equal(fastifyMock.secrets.test, 'value for test - 2', 'refreshed secret has been called twice')
+    t.assert.equal(fastifyMock.secrets.test2, 'value for test2 - 1', 'un-refreshed secret has been called once')
   })
 
-  t.test('refreshes all secrets by default', async (t) => {
-    buildPlugin(MockClient)
-    const plugin = fp.firstCall.args[0]
+  test('refreshes all secrets by default', async (t) => {
+    const fp = mock.fn(() => ({}))
+    buildPlugin(MockClient, undefined, { fp })
+    const plugin = fp.mock.calls[0].arguments[0]
 
-    const decorate = sinon.stub().callsFake((key, value) => {
+    const decorate = mock.fn((key, value) => {
       fastifyMock[key] = value
     })
 
@@ -443,15 +473,16 @@ test('client wrapper', async (t) => {
 
     await fastifyMock.secrets.refresh()
 
-    t.equal(fastifyMock.secrets.test, 'value for test - 2', 'refreshed secret has been called twice')
-    t.equal(fastifyMock.secrets.test2, 'value for test2 - 2', 'refreshed secret has been called twice')
+    t.assert.strictEqual(fastifyMock.secrets.test, 'value for test - 2', 'refreshed secret has been called twice')
+    t.assert.strictEqual(fastifyMock.secrets.test2, 'value for test2 - 2', 'refreshed secret has been called twice')
   })
 
-  t.test('refreshes a specified set of secrets with array notation', async (t) => {
-    buildPlugin(MockClient)
-    const plugin = fp.firstCall.args[0]
+  test('refreshes a specified set of secrets with array notation', async (t) => {
+    const fp = mock.fn(() => ({}))
+    buildPlugin(MockClient, undefined, { fp })
+    const plugin = fp.mock.calls[0].arguments[0]
 
-    const decorate = sinon.stub().callsFake((key, value) => {
+    const decorate = mock.fn((key, value) => {
       fastifyMock[key] = value
     })
 
@@ -465,16 +496,17 @@ test('client wrapper', async (t) => {
 
     await fastifyMock.secrets.refresh(['test', 'test2'])
 
-    t.equal(fastifyMock.secrets.test, 'value for test - 2', 'refreshed secret has been called twice')
-    t.equal(fastifyMock.secrets.test2, 'value for test2 - 2', 'refreshed secret has been called twice')
-    t.equal(fastifyMock.secrets.test3, 'value for test3 - 1', 'un-refreshed secret has been called once')
+    t.assert.strictEqual(fastifyMock.secrets.test, 'value for test - 2', 'refreshed secret has been called twice')
+    t.assert.strictEqual(fastifyMock.secrets.test2, 'value for test2 - 2', 'refreshed secret has been called twice')
+    t.assert.strictEqual(fastifyMock.secrets.test3, 'value for test3 - 1', 'un-refreshed secret has been called once')
   })
 
-  t.test('refreshes a specified set of secrets with object notation', async (t) => {
-    buildPlugin(MockClient)
-    const plugin = fp.firstCall.args[0]
+  test('refreshes a specified set of secrets with object notation', async (t) => {
+    const fp = mock.fn(() => ({}))
+    buildPlugin(MockClient, undefined, { fp })
+    const plugin = fp.mock.calls[0].arguments[0]
 
-    const decorate = sinon.stub().callsFake((key, value) => {
+    const decorate = mock.fn((key, value) => {
       fastifyMock[key] = value
     })
 
@@ -493,16 +525,29 @@ test('client wrapper', async (t) => {
 
     await fastifyMock.secrets.refresh()
 
-    t.equal(fastifyMock.secrets.test, 'value for secretAlias - 2', 'refreshed secret has been called twice')
-    t.equal(fastifyMock.secrets.test2, 'value for secretAlias2 - 2', 'refreshed secret has been called twice')
-    t.equal(fastifyMock.secrets.test3, 'value for secretAlias3 - 2', 'refreshed secret has been called twice')
+    t.assert.strictEqual(
+      fastifyMock.secrets.test,
+      'value for secretAlias - 2',
+      'refreshed secret has been called twice'
+    )
+    t.assert.strictEqual(
+      fastifyMock.secrets.test2,
+      'value for secretAlias2 - 2',
+      'refreshed secret has been called twice'
+    )
+    t.assert.strictEqual(
+      fastifyMock.secrets.test3,
+      'value for secretAlias3 - 2',
+      'refreshed secret has been called twice'
+    )
   })
 
-  t.test('respects namespaces when refreshing', async (t) => {
-    buildPlugin(MockClient)
-    const plugin = fp.firstCall.args[0]
+  test('respects namespaces when refreshing', async (t) => {
+    const fp = mock.fn(() => ({}))
+    buildPlugin(MockClient, undefined, { fp })
+    const plugin = fp.mock.calls[0].arguments[0]
 
-    const decorate = sinon.stub().callsFake((key, value) => {
+    const decorate = mock.fn((key, value) => {
       fastifyMock[key] = value
     })
 
@@ -518,13 +563,21 @@ test('client wrapper', async (t) => {
 
     await fastifyMock.secrets.testns.refresh('test')
 
-    t.equal(fastifyMock.secrets.testns.test, 'value for test - 2', 'refreshed secret has been called twice')
-    t.equal(fastifyMock.secrets.testns.test2, 'value for test2 - 1', 'un-refreshed secret has been called once')
+    t.assert.strictEqual(
+      fastifyMock.secrets.testns.test,
+      'value for test - 2',
+      'refreshed secret has been called twice'
+    )
+    t.assert.strictEqual(
+      fastifyMock.secrets.testns.test2,
+      'value for test2 - 1',
+      'un-refreshed secret has been called once'
+    )
   })
 
-  t.test('will instantiate a fresh client if there is a provided close method', async (t) => {
-    const constructionStub = sinon.stub()
-    const closeStub = sinon.stub()
+  test('will instantiate a fresh client if there is a provided close method', async (t) => {
+    const constructionStub = mock.fn()
+    const closeStub = mock.fn()
     class MockCloseClient {
       constructor() {
         constructionStub()
@@ -539,10 +592,12 @@ test('client wrapper', async (t) => {
       }
     }
 
+    const fp = mock.fn(() => ({}))
+    buildPlugin(MockCloseClient, undefined, { fp })
     buildPlugin(MockCloseClient)
-    const plugin = fp.firstCall.args[0]
+    const plugin = fp.mock.calls[0].arguments[0]
 
-    const decorate = sinon.stub().callsFake((key, value) => {
+    const decorate = mock.fn((key, value) => {
       fastifyMock[key] = value
     })
 
@@ -554,11 +609,11 @@ test('client wrapper', async (t) => {
       secrets: ['test']
     })
 
-    t.ok(closeStub.calledOnce, 'close is invoked after initial secret setup')
+    t.assert.ok(closeStub.mock.calls.length === 1, 'close is invoked after initial secret setup')
 
     await fastifyMock.secrets.refresh()
 
-    t.ok(constructionStub.calledTwice, 'constructor has been called twice')
-    t.ok(closeStub.calledTwice, 'close method has been called twice')
+    t.assert.ok(constructionStub.mock.calls.length === 2, 'constructor has been called twice')
+    t.assert.ok(closeStub.mock.calls.length === 2, 'close method has been called twice')
   })
 })
