@@ -1,6 +1,6 @@
 import { beforeEach, describe, mock, test } from 'node:test'
 
-import buildPlugin from '../lib/build-plugin.js'
+import { buildPlugin } from '../lib/build-plugin.js'
 
 class Client {
   async get(key) {
