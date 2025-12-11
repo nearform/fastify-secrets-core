@@ -18,17 +18,20 @@ export default [
   {
     languageOptions: {
       globals: {
-        ...Object.fromEntries(Object.entries(globals.browser).map(([key]) => [key, "off"])),
-        ...globals.es2021,
+        ...Object.fromEntries(Object.entries(globals.browser).map(([key]) => [key, 'off'])),
+        ...globals.es2021
       },
       ecmaVersion: 'latest',
-      sourceType: "module",
+      sourceType: 'module'
     },
     rules: {
       'n/no-unpublished-require': 'off',
-      "import/order": ["error", {
-        "newlines-between": "always",
-      }],
+      'import/order': [
+        'error',
+        {
+          'newlines-between': 'always'
+        }
+      ]
     }
   }
 ]
