@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/nearform/fastify-secrets-core#readme",
   "engines": {
-    "node": "^22.13.0 || >=24"
+    "node": ">=22"
   },
   "dependencies": {
     "fastify-plugin": "^6.0.0",
