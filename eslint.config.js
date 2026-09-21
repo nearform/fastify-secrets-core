@@ -1,4 +1,4 @@
-import importPlugin from 'eslint-plugin-import'
+import importPlugin from 'eslint-plugin-import-x'
 import prettierRecommended from 'eslint-plugin-prettier/recommended'
 import globals from 'globals'
 import neostandard from 'neostandard'
@@ -17,15 +17,15 @@ export default [
   // `eslint-config-standard` used to contribute are re-declared here. These are
   // exactly the seven that were active before this change, at the same severity.
   {
-    plugins: { import: importPlugin },
+    plugins: { 'import-x': importPlugin },
     rules: {
-      'import/export': 'error',
-      'import/first': 'error',
-      'import/no-absolute-path': ['error', { esmodule: true, commonjs: true, amd: false }],
-      'import/no-duplicates': 'error',
-      'import/no-named-default': 'error',
-      'import/no-webpack-loader-syntax': 'error',
-      'import/order': ['error', { 'newlines-between': 'always' }]
+      'import-x/export': 'error',
+      'import-x/first': 'error',
+      'import-x/no-absolute-path': ['error', { esmodule: true, commonjs: true, amd: false }],
+      'import-x/no-duplicates': 'error',
+      'import-x/no-named-default': 'error',
+      'import-x/no-webpack-loader-syntax': 'error',
+      'import-x/order': ['error', { 'newlines-between': 'always' }]
     }
   },
 
